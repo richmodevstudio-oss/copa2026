@@ -180,6 +180,7 @@ def simulate_tournament(fixtures, ratings, mu, *, max_goals: int = 8) -> Tournam
             return results[val].winner
         if tag == "LM":
             return results[val].loser
+        raise ValueError(f"slot de chaveamento desconhecido: {slot}")
 
     for no in sorted(MATCHES):
         slot_a, slot_b = MATCHES[no]

@@ -1,4 +1,4 @@
-from copa2026.bracket_data import GROUPS
+from copa2026.bracket_data import GROUPS, STAGE_OF
 from copa2026.models import TeamRatings
 from copa2026.tournament import FixtureMatch, parse_fixtures, simulate_tournament
 
@@ -58,7 +58,7 @@ def _group_fixtures(all_finished=False, results=None):
                 if all_finished:
                     gh, ga = (results or {}).get((h, a), (1, 0))
                     status = "FINISHED"
-                fx.append(_fx("GROUP_STAGE", g, h, a, gh, ga, status))
+                fx.append(_fx("GROUP_STAGE", f"GROUP_{g}", h, a, gh, ga, status))
     return fx, teams
 
 
@@ -72,7 +72,6 @@ def _fx(stage, group, home, away, gh, ga, status, utc="2026-06-15T00:00:00Z"):
 def _ko_placeholders():
     fx = []
     for no in range(73, 105):
-        from copa2026.bracket_data import STAGE_OF
         fx.append(_fx(STAGE_OF[no], None, None, None, None, None, "TIMED",
                       utc=f"2026-06-28T{no % 24:02d}:00:00Z"))
     return fx
@@ -120,7 +119,6 @@ def test_real_group_result_overrides_prediction():
 def test_real_knockout_result_is_marked_and_propagated():
     gfx, teams = _group_fixtures()
     ko = []
-    from copa2026.bracket_data import STAGE_OF
     for no in range(73, 105):
         if no == 73:
             ko.append(_fx("LAST_32", None, "X", "Y", 1, 0, "FINISHED",
@@ -132,3 +130,5 @@ def test_real_knockout_result_is_marked_and_propagated():
     m73 = next(k for k in res.knockout if k.match_no == 73)
     assert m73.real is True
     assert m73.winner == "X"
+    m90 = next(k for k in res.knockout if k.match_no == 90)
+    assert m90.home == "X"      # vencedor real do jogo 73 propaga para o jogo 90
