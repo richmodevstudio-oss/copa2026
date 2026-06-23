@@ -1,0 +1,13 @@
+# Segredos
+.env
+
+# Claude Code (permissões locais)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
