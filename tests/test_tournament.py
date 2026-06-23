@@ -1,6 +1,6 @@
 from copa2026.bracket_data import GROUPS, STAGE_OF
 from copa2026.models import TeamRatings
-from copa2026.tournament import FixtureMatch, parse_fixtures, simulate_tournament
+from copa2026.tournament import FixtureMatch, finished_results, parse_fixtures, simulate_tournament
 
 
 SAMPLE = {
@@ -132,3 +132,44 @@ def test_real_knockout_result_is_marked_and_propagated():
     assert m73.winner == "X"
     m90 = next(k for k in res.knockout if k.match_no == 90)
     assert m90.home == "X"      # vencedor real do jogo 73 propaga para o jogo 90
+
+
+# ---------------------------------------------------------------------------
+# Testes para finished_results
+# ---------------------------------------------------------------------------
+
+def test_finished_results_returns_only_finished_matches():
+    fixtures = [
+        FixtureMatch(
+            stage="GROUP_STAGE", group="GROUP_A",
+            home="Brazil", away="Mexico",
+            home_goals=2, away_goals=1,
+            status="FINISHED", winner="HOME_TEAM",
+            utc_date="2026-06-15T20:00:00Z",
+        ),
+        FixtureMatch(
+            stage="LAST_32", group=None,
+            home=None, away=None,
+            home_goals=None, away_goals=None,
+            status="TIMED", winner=None,
+            utc_date="2026-06-28T19:00:00Z",
+        ),
+    ]
+    result = finished_results(fixtures)
+    assert len(result) == 1
+    assert result[0] == ("2026-06-15", "Brazil", "Mexico", 2, 1)
+
+
+# ---------------------------------------------------------------------------
+# Teste para _knockout_rows (função pura de app.py)
+# ---------------------------------------------------------------------------
+
+def test_knockout_rows_groups_by_stage_label():
+    import app
+    gfx, teams = _group_fixtures()
+    res = simulate_tournament(gfx + _ko_placeholders(), _ratings_by_group(teams), mu=1.3)
+    rows = app._knockout_rows(res)
+    assert "Final" in rows
+    assert len(rows["16 avos de final"]) == 16
+    linha = rows["Final"][0]
+    assert {"Jogo", "Placar", "Origem"} <= set(linha)

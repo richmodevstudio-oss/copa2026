@@ -58,6 +58,20 @@ def fetch_wc_fixtures(source: FootballDataSource) -> list[FixtureMatch]:
     return parse_fixtures(source.competition_matches())
 
 
+def finished_results(fixtures: list[FixtureMatch]) -> list[tuple[str, str, str, int, int]]:
+    """Jogos da Copa já disputados como tuplas ``(data, mandante, visitante, gh, ga)``,
+    no formato de ``HardcodedDataSource`` — permite calcular a força incluindo os
+    resultados reais da Copa sem uma chamada de rede por seleção."""
+    return [
+        (f.utc_date[:10], f.home, f.away, f.home_goals, f.away_goals)
+        for f in fixtures
+        if f.status == "FINISHED"
+        and f.home and f.away
+        and f.home_goals is not None
+        and f.away_goals is not None
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Dataclasses de resultado
 # ---------------------------------------------------------------------------
