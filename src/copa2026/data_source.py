@@ -195,6 +195,10 @@ class FootballDataSource:
         )
         return parse_football_data_matches(payload)
 
+    def competition_matches(self) -> dict:
+        """Todos os jogos da competição (calendário + resultados + chaveamento)."""
+        return self._get(f"/competitions/{self.competition}/matches")
+
 
 class SyntheticDataSource:
     """Gera partidas determinísticas para uso offline.
