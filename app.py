@@ -32,7 +32,6 @@ def _load_env_file(path: Path) -> None:
 
 _load_env_file(Path(__file__).parent / ".env")
 
-from copa2026.bracket_data import STAGE_LABEL_PT, STAGE_OF  # noqa: E402
 from copa2026.data_source import (  # noqa: E402
     CombinedDataSource,
     FootballDataSource,
@@ -45,15 +44,13 @@ from copa2026.tournament import (  # noqa: E402
     TournamentResult,
     fetch_wc_fixtures,
     finished_results,
+    knockout_rows,
     simulate_tournament,
 )
 
 st.set_page_config(page_title="Previsor Copa 2026", page_icon="⚽", layout="wide")
 
 MAX_GOALS = 8
-
-_STAGE_ORDER = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS",
-                "THIRD_PLACE", "FINAL"]
 
 
 @st.cache_data(show_spinner="Calculando com dados reais...")
@@ -100,30 +97,11 @@ def _heatmap(prediction: MatchPrediction):
     return fig
 
 
-def _knockout_rows(result: TournamentResult) -> dict[str, list[dict]]:
-    """Linhas de exibição do mata-mata, agrupadas por rótulo de fase (em ordem)."""
-    rows: dict[str, list[dict]] = {STAGE_LABEL_PT[s]: [] for s in _STAGE_ORDER}
-    for k in result.knockout:
-        origem = "✅ Real" if k.real else "🔮 Previsto"
-        placar = f"{k.home_goals} x {k.away_goals}"
-        if k.penalties:
-            placar += " (pên.)"
-        rows[STAGE_LABEL_PT[k.stage]].append(
-            {
-                "Jogo": f"{display_pt(k.home)} x {display_pt(k.away)}",
-                "Placar": placar,
-                "Avança": display_pt(k.winner),
-                "Origem": origem,
-            }
-        )
-    return rows
-
-
 @st.cache_data(ttl=600, show_spinner="Buscando jogos e simulando o torneio...")
 def _run_tournament(fd_api_key: str) -> TournamentResult:
     source = FootballDataSource(api_key=fd_api_key)
     fixtures = fetch_wc_fixtures(source)                      # única chamada à API
-    wc_source = HardcodedDataSource(finished_results(fixtures), last=50)
+    wc_source = HardcodedDataSource(finished_results(fixtures), last=50)  # last=50: inclui todos os jogos da Copa já disputados na base de força
     combined = CombinedDataSource(HardcodedDataSource(), wc_source)  # pré-Copa + Copa, sem rede extra
     ratings, mu = compute_global_ratings(combined)
     return simulate_tournament(fixtures, ratings, mu)
@@ -163,7 +141,7 @@ def _render_tabela(fd_api_key: str) -> None:
 
     st.markdown("### Mata-mata")
     st.caption("✅ Real = já disputado · 🔮 Previsto = palpite do modelo")
-    for label, linhas in _knockout_rows(result).items():
+    for label, linhas in knockout_rows(result).items():
         if not linhas:
             continue
         st.markdown(f"**{label}**")

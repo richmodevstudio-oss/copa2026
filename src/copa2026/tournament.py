@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .bracket_data import GROUPS, MATCHES, STAGE_OF
+from .bracket_data import GROUPS, MATCHES, STAGE_OF, STAGE_LABEL_PT
 from .data_source import FootballDataSource, canonical_name
+from .teams import display_pt
 from .ratings import predict_scoreline, knockout_winner
 from .standings import TeamRecord, compute_group_table, rank_third_places
 from .third_place_data import BEST_THIRD_ALLOCATION
@@ -217,3 +218,33 @@ def simulate_tournament(fixtures, ratings, mu, *, max_goals: int = 8) -> Tournam
 
     knockout = [results[no] for no in sorted(results)]
     return TournamentResult(groups, knockout, third_key)
+
+
+# ---------------------------------------------------------------------------
+# Helpers de exibição (puros, sem Streamlit)
+# ---------------------------------------------------------------------------
+
+_STAGE_ORDER = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS",
+                "THIRD_PLACE", "FINAL"]
+
+
+def knockout_rows(result: TournamentResult) -> dict[str, list[dict]]:
+    """Linhas de exibição do mata-mata, agrupadas por rótulo de fase (em ordem).
+
+    Função pura (sem Streamlit) para ser testável e reutilizável pela UI.
+    """
+    rows: dict[str, list[dict]] = {STAGE_LABEL_PT[s]: [] for s in _STAGE_ORDER}
+    for k in result.knockout:
+        origem = "✅ Real" if k.real else "🔮 Previsto"
+        placar = f"{k.home_goals} x {k.away_goals}"
+        if k.penalties:
+            placar += " (pên.)"
+        rows[STAGE_LABEL_PT[k.stage]].append(
+            {
+                "Jogo": f"{display_pt(k.home)} x {display_pt(k.away)}",
+                "Placar": placar,
+                "Avança": display_pt(k.winner),
+                "Origem": origem,
+            }
+        )
+    return rows

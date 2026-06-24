@@ -1,6 +1,6 @@
 from copa2026.bracket_data import GROUPS, STAGE_OF
 from copa2026.models import TeamRatings
-from copa2026.tournament import FixtureMatch, finished_results, parse_fixtures, simulate_tournament
+from copa2026.tournament import FixtureMatch, finished_results, knockout_rows, parse_fixtures, simulate_tournament
 
 
 SAMPLE = {
@@ -165,10 +165,9 @@ def test_finished_results_returns_only_finished_matches():
 # ---------------------------------------------------------------------------
 
 def test_knockout_rows_groups_by_stage_label():
-    import app
     gfx, teams = _group_fixtures()
     res = simulate_tournament(gfx + _ko_placeholders(), _ratings_by_group(teams), mu=1.3)
-    rows = app._knockout_rows(res)
+    rows = knockout_rows(res)
     assert "Final" in rows
     assert len(rows["16 avos de final"]) == 16
     linha = rows["Final"][0]
