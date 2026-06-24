@@ -31,6 +31,7 @@ def test_parse_fixtures_group_match():
     assert g.home == "Mexico" and g.away == "South Africa"
     assert g.home_goals == 2 and g.away_goals == 0
     assert g.status == "FINISHED" and g.winner == "HOME_TEAM"
+    assert parse_fixtures(SAMPLE)[0].duration == "REGULAR"
 
 
 def test_parse_fixtures_keeps_unresolved_knockout():
@@ -62,11 +63,13 @@ def _group_fixtures(all_finished=False, results=None):
     return fx, teams
 
 
-def _fx(stage, group, home, away, gh, ga, status, utc="2026-06-15T00:00:00Z"):
+def _fx(stage, group, home, away, gh, ga, status, utc="2026-06-15T00:00:00Z",
+        duration="REGULAR"):
     winner = None
     if status == "FINISHED" and gh is not None:
         winner = "HOME_TEAM" if gh > ga else "AWAY_TEAM" if ga > gh else "DRAW"
-    return FixtureMatch(stage, group, home, away, gh, ga, status, winner, utc)
+    return FixtureMatch(stage, group, home, away, gh, ga, status, winner, utc,
+                        duration=duration)
 
 
 def _ko_placeholders():
@@ -132,6 +135,30 @@ def test_real_knockout_result_is_marked_and_propagated():
     assert m73.winner == "X"
     m90 = next(k for k in res.knockout if k.match_no == 90)
     assert m90.home == "X"      # vencedor real do jogo 73 propaga para o jogo 90
+
+
+def test_real_penalty_shootout_is_marked():
+    """Jogo de mata-mata decidido nos pênaltis deve ter penalties=True e real=True."""
+    gfx, teams = _group_fixtures()
+    ko = []
+    for no in range(73, 105):
+        if no == 73:
+            # Empate no tempo normal, decidido nos pênaltis; mandante vence
+            ko.append(_fx("LAST_32", None, "X", "Y", 1, 1, "FINISHED",
+                          utc="2026-06-28T00:00:00Z", duration="PENALTY_SHOOTOUT"))
+        else:
+            ko.append(_fx(STAGE_OF[no], None, None, None, None, None, "TIMED",
+                          utc=f"2026-06-29T{no % 24:02d}:00:00Z"))
+    # Forçar winner="HOME_TEAM" explicitamente no FixtureMatch do jogo 73
+    # (o _fx helper deriva winner="DRAW" para empate; precisamos sobrescrever)
+    ko[0] = FixtureMatch("LAST_32", None, "X", "Y", 1, 1, "FINISHED",
+                         "HOME_TEAM", "2026-06-28T00:00:00Z",
+                         duration="PENALTY_SHOOTOUT")
+    res = simulate_tournament(gfx + ko, _ratings_by_group(teams), mu=1.3)
+    m73 = next(k for k in res.knockout if k.match_no == 73)
+    assert m73.real is True
+    assert m73.penalties is True
+    assert m73.winner == "X"
 
 
 # ---------------------------------------------------------------------------

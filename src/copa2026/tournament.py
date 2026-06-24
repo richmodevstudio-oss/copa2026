@@ -28,6 +28,7 @@ class FixtureMatch:
     status: str
     winner: str | None
     utc_date: str
+    duration: str | None = None
 
 
 def _name(team: dict) -> str | None:
@@ -50,6 +51,7 @@ def parse_fixtures(payload: dict) -> list[FixtureMatch]:
                 status=m["status"],
                 winner=m["score"].get("winner"),
                 utc_date=m["utcDate"],
+                duration=m["score"].get("duration"),
             )
         )
     return out
@@ -150,6 +152,10 @@ def _api_knockout_by_match(fixtures) -> dict[int, "FixtureMatch"]:
             (f for f in fixtures if f.stage == stage),
             key=lambda f: f.utc_date,
         )
+        # Se as contagens diferem, a correspondência posicional seria incorreta;
+        # ignoramos toda a fase para não corromper o chaveamento.
+        if len(numbers) != len(api):
+            continue
         for no, fx in zip(numbers, api):
             mapping[no] = fx
     return mapping
@@ -205,7 +211,7 @@ def simulate_tournament(fixtures, ratings, mu, *, max_goals: int = 8) -> Tournam
             home, away = fx.home, fx.away
             gh, ga = fx.home_goals, fx.away_goals
             winner = home if fx.winner == "HOME_TEAM" else away
-            penalties = fx.winner not in ("HOME_TEAM", "AWAY_TEAM") and gh == ga
+            penalties = fx.duration == "PENALTY_SHOOTOUT"
             real = True
         else:
             pred = predict_scoreline(home, away, ratings, mu, max_goals=max_goals)

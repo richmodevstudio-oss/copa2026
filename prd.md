@@ -350,7 +350,11 @@ mão).
 A força das 48 seleções é calculada **uma única vez** por `compute_global_ratings`
 (`ratings.py`), reunindo o histórico de todas as seleções e rodando o modelo
 iterativo de ponto-fixo (PRD §4.2) sobre esse pool comum. Isso permite prever
-as ~100 partidas do torneio sem recalcular ratings por par de times.
+as ~100 partidas do torneio sem recalcular ratings por par de times. Por design,
+o ajuste global (uma calibração sobre todos os 48 times) pode produzir λ e
+palpites ligeiramente diferentes dos gerados pelo Previsor, que recalcula ratings
+por par em `pipeline.predict_match` — a diferença é esperada e reflete os dois
+modos de uso.
 
 ### 9.4. Regra de mistura real/previsto
 
