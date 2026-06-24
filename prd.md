@@ -322,6 +322,90 @@ O placar vencedor $(p_A^*, p_B^*)$ é o palpite final.
 
 ---
 
+## 9. Aba "Tabela da Copa"
+
+### 9.1. Objetivo
+
+Exibir o chaveamento completo da Copa 2026 preenchido até a final: jogos já
+disputados com resultado real, jogos futuros com o palpite ótimo do previsor.
+A aba vive em `app.py` ao lado da aba original "Previsor" e usa exclusivamente
+os módulos descritos abaixo — não modifica a lógica do pipeline existente.
+
+### 9.2. Fonte de dados
+
+A API football-data.org (`/competitions/WC/matches`, via `FootballDataSource`)
+retorna todos os jogos da Copa em uma única chamada: fase de grupos, resultados
+reais e calendário futuro.
+
+O que a API **não** fornece é o chaveamento do mata-mata (quem joga contra
+quem com base nos classificados). Esse mapeamento está embutido em
+`bracket_data.py` como dicionário estático (`MATCHES`, jogos 73–104), derivado
+do regulamento FIFA. Os confrontos dos 16 melhores terceiros colocados seguem
+a tabela oficial de alocação FIFA, gerada em `third_place_data.py` (495 linhas,
+produzidas pelo script `scripts/generate_third_place_data.py` — não editar à
+mão).
+
+### 9.3. Força global
+
+A força das 48 seleções é calculada **uma única vez** por `compute_global_ratings`
+(`ratings.py`), reunindo o histórico de todas as seleções e rodando o modelo
+iterativo de ponto-fixo (PRD §4.2) sobre esse pool comum. Isso permite prever
+as ~100 partidas do torneio sem recalcular ratings por par de times.
+
+### 9.4. Regra de mistura real/previsto
+
+Para cada jogo da fase de grupos (`GROUP_STAGE`):
+
+- **Disputado (`FINISHED`):** usa o placar real da API.
+- **Não disputado:** usa o palpite ótimo de `predict_scoreline` (`ratings.py`),
+  que aplica as etapas 3 e 4 do algoritmo (λ + argmax de pontos esperados).
+
+Para os jogos do mata-mata (73–104), a mesma regra se aplica: placar real se
+`FINISHED`, previsto caso contrário. A API não vincula o jogo ao slot no
+chaveamento; a correspondência é feita por ordem cronológica dentro de cada
+fase (limitação documentada em `tournament.py`).
+
+### 9.5. Classificação de grupo (FIFA)
+
+Implementada em `standings.py` (`compute_group_table`). Ordem dos critérios:
+
+1. Pontos (geral).
+2. Saldo de gols (geral).
+3. Gols marcados (geral).
+4. Dentro do grupo empatado nos três anteriores: pontos, saldo e gols marcados
+   **apenas nos confrontos diretos**.
+5. Desempate determinístico por ordem alfabética de nome canônico (substituto
+   para fair-play/sorteio, indisponíveis sem dados de cartões).
+
+Os oito melhores terceiros são selecionados por `rank_third_places` (pontos →
+saldo → gols pró → grupo) e alocados conforme `BEST_THIRD_ALLOCATION`
+(`third_place_data.py`).
+
+### 9.6. Vencedor no mata-mata
+
+`knockout_winner` (`ratings.py`) determina o time que avança:
+
+- **Palpite com vencedor:** avança quem marcou mais no palpite.
+- **Palpite empatado:** avança o time de maior λ (gols esperados); se λ
+  empatar, o de maior qualidade ofensiva/defensiva ($O/D$). O placar é
+  exibido com o sufixo **(pên.)** na interface.
+
+O simulador (`simulate_tournament`, `tournament.py`) propaga os vencedores
+pelos slots `WM`/`LM` do `bracket_data.py`, iterando os jogos 73→104 em
+ordem crescente para garantir que dependências já estejam resolvidas.
+
+### 9.7. Resumo dos módulos
+
+| Módulo | Responsabilidade |
+|---|---|
+| `ratings.py` | `compute_global_ratings`, `predict_scoreline`, `knockout_winner` |
+| `standings.py` | `compute_group_table`, `rank_third_places` (critérios FIFA) |
+| `bracket_data.py` | Mapa estático do chaveamento (jogos 73–104) |
+| `third_place_data.py` | Tabela oficial de alocação dos 8 melhores terceiros (gerado) |
+| `tournament.py` | `parse_fixtures`, `fetch_wc_fixtures`, `simulate_tournament`, `knockout_rows` |
+
+---
+
 ## Apêndice A — Glossário
 
 | Termo | Definição |

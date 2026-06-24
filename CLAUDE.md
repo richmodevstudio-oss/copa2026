@@ -26,8 +26,14 @@ Lógica em `src/copa2026/` (pacote importável; `pythonpath = src` no `pytest.in
   `CombinedDataSource`, `SyntheticDataSource`.
 - `pre_wc_data.py` — histórico pré-Copa embutido (**gerado**, não editar à mão).
 - `pipeline.py` — orquestra as 4 etapas via `predict_match`.
+- `ratings.py` — força global (1×) + `predict_scoreline` + `knockout_winner` (PRD §4.2–4.4).
+- `standings.py` — classificação de grupo pelos critérios FIFA.
+- `bracket_data.py` — mapa fixo do chaveamento (jogos 73–104, escrito à mão).
+- `third_place_data.py` — tabela oficial dos 8 melhores terceiros (**gerado**, não editar à mão).
+- `tournament.py` — simulação do torneio completo (real + previsto) via `simulate_tournament`.
 
-`app.py` é a UI Streamlit (camada fina sobre `pipeline.predict_match`).
+`app.py` é a UI Streamlit com duas abas: **Previsor** (palpite por partida) e
+**Tabela da Copa** (chaveamento completo até a final).
 
 ## Dados
 
@@ -37,6 +43,8 @@ Copa em tempo real, defina `FOOTBALL_DATA_API_KEY` no `.env` (não versionado);
 `CombinedDataSource` junta as duas fontes sem duplicatas.
 
 Regenerar o histórico embutido: `python scripts/generate_pre_wc_data.py`.
+
+Regenerar a tabela dos melhores terceiros: `python scripts/generate_third_place_data.py`.
 
 ## Comandos
 
