@@ -17,7 +17,7 @@ especificado em [`prd.md`](prd.md).
 Um artigo em LaTeX com a metodologia, a verificação empírica (backtest) e a
 probabilidade de título está em [`artigo/`](artigo/). Regenerar os números:
 `python scripts/gerar_analise.py` e recompilar com
-`latexmk -pdf artigo/previsor-copa-2026.tex`.
+`latexmk -pdf artigo/forca-probabilidades-copa-2026.tex`.
 
 ## Instalação
 

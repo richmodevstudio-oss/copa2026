@@ -317,7 +317,7 @@ O placar vencedor $(p_A^*, p_B^*)$ é o palpite final.
 ### 8.1. Artigo e análise empírica
 
 A metodologia, a verificação e a análise de desempenho estão documentadas em
-um artigo em LaTeX em [`artigo/previsor-copa-2026.tex`](artigo/previsor-copa-2026.tex).
+um artigo em LaTeX em [`artigo/forca-probabilidades-copa-2026.tex`](artigo/forca-probabilidades-copa-2026.tex).
 O artigo inclui:
 
 - **Metodologia:** resumo das seções 4.1–4.4 deste PRD.
@@ -334,7 +334,7 @@ O artigo inclui:
   tabelas do artigo em uma única chamada.
 
 Para regenerar: `python scripts/gerar_analise.py` e recompilar com
-`latexmk -pdf artigo/previsor-copa-2026.tex`.
+`latexmk -pdf artigo/forca-probabilidades-copa-2026.tex`.
 
 ### 8.2. Trabalhos Futuros
 
