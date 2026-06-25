@@ -47,3 +47,58 @@ def test_ratings_asof_empty_window_raises():
         assert False, "esperava ValueError"
     except ValueError:
         pass
+
+
+from copa2026.backtest import walk_forward_backtest, GameBacktest
+from copa2026.tournament import FixtureMatch
+
+
+def _fx(home, away, gh, ga, dia):
+    return FixtureMatch("GROUP_STAGE", "GROUP_A", home, away, gh, ga,
+                        "FINISHED", None, f"2026-{dia}T18:00:00Z")
+
+
+def _base_forte_fraca():
+    # Brazil claramente mais forte que Bolivia no histórico pré-Copa.
+    from copa2026.models import Match
+    from datetime import date
+    jogos = []
+    for k in range(6):
+        jogos.append(Match("Brazil", "Bolivia", 3, 0, date(2026, 5, 10 + k)))
+        jogos.append(Match("France", "Bolivia", 2, 0, date(2026, 5, 10 + k)))
+        jogos.append(Match("Brazil", "France", 1, 1, date(2026, 5, 10 + k)))
+    return jogos
+
+
+def test_walk_forward_hitrate_and_fields():
+    base = _base_forte_fraca()
+    jogos = [_fx("Brazil", "Bolivia", 2, 0, "06-12"),   # casa vence (previsível)
+             _fx("Bolivia", "Brazil", 0, 3, "06-15")]   # fora vence
+    res = walk_forward_backtest(jogos, base)
+    assert res.total == 2
+    assert res.confianca == res.acertos / res.total
+    assert res.jogos[0].previsto == "CASA" and res.jogos[0].real == "CASA"
+    assert res.jogos[0].acertou is True
+    # soma das probabilidades ~ 1
+    g = res.jogos[0]
+    assert abs((g.p_home + g.p_draw + g.p_away) - 1.0) < 1e-9
+
+
+def test_walk_forward_has_no_lookahead():
+    base = _base_forte_fraca()
+    g1 = _fx("Brazil", "Bolivia", 2, 0, "06-12")
+    g2 = _fx("Bolivia", "France", 0, 1, "06-14")
+    g3 = _fx("Brazil", "France", 2, 1, "06-18")
+    # a previsão de g1/g2 não pode depender de jogos posteriores
+    sem_g3 = walk_forward_backtest([g1, g2], base).jogos
+    com_g3 = walk_forward_backtest([g1, g2, g3], base).jogos
+    assert sem_g3 == com_g3[:2]
+
+
+def test_walk_forward_skips_games_without_base():
+    base = _base_forte_fraca()
+    # jogo muito depois -> janela ainda tem base; jogo de seleções sem história
+    # ainda é previsto (rating neutro), então total conta os FINISHED com janela.
+    jogos = [_fx("Brazil", "Bolivia", 1, 0, "06-12")]
+    res = walk_forward_backtest(jogos, base)
+    assert res.total == 1
