@@ -21,11 +21,10 @@ _ROTULO = {
     "LAST_16": "R16",
     "QUARTER_FINALS": "QF",
     "SEMI_FINALS": "SF",
-    "FINAL": "Final",
 }
 
 
-def prob_vitoria(a: str, b: str, ratings: dict, mu: float, *, max_goals: int = 8) -> float:
+def prob_vitoria(a: str, b: str, ratings: dict[str, TeamRatings], mu: float, *, max_goals: int = 8) -> float:
     """P(``a`` avança contra ``b``) = P(a vence) + ½·P(empate)."""
     ra = ratings.get(a, _NEUTRO)
     rb = ratings.get(b, _NEUTRO)
@@ -37,7 +36,7 @@ def prob_vitoria(a: str, b: str, ratings: dict, mu: float, *, max_goals: int = 8
 
 def probabilidades_titulo(
     confrontos_r32: dict[int, tuple[str, str]],
-    ratings: dict,
+    ratings: dict[str, TeamRatings],
     mu: float,
     *,
     matches: dict = MATCHES,

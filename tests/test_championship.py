@@ -49,3 +49,19 @@ def test_dp_quatro_times_soma_um():
     assert por_time["A"]["CAMPEAO"] > por_time["B"]["CAMPEAO"]
     # probabilidade de campeão <= probabilidade de vencer a 1ª rodada
     assert por_time["A"]["CAMPEAO"] <= por_time["A"]["1"] + 1e-12
+
+
+def test_dp_chaveamento_real_soma_um_e_monotonico():
+    import random
+    from copa2026.bracket_data import MATCHES  # noqa: F401  (usa o padrão)
+    rng = random.Random(7)
+    times = [f"T{i:02d}" for i in range(32)]
+    ratings = {t: TeamRatings(rng.uniform(0.7, 1.7), rng.uniform(0.6, 1.5))
+               for t in times}
+    it = iter(times)
+    confrontos = {no: (next(it), next(it)) for no in range(73, 89)}
+    por = probabilidades_titulo(confrontos, ratings, mu=1.3)
+    assert len(por) == 32
+    assert abs(sum(p["CAMPEAO"] for p in por.values()) - 1.0) < 1e-9
+    for p in por.values():
+        assert p["CAMPEAO"] <= p["SF"] <= p["QF"] <= p["R16"] <= p["R32"] <= 1.0 + 1e-12

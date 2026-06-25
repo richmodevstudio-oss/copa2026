@@ -43,7 +43,7 @@ def ratings_asof(
     *,
     janela: int = 90,
     reg: float = 2.0,
-) -> tuple[dict, float]:
+) -> tuple[dict[str, TeamRatings], float]:
     """Força (ataque/defesa) e mu calculados com a janela ``[corte-janela, corte)``.
 
     Função pura: depende só de ``corte`` e ``partidas`` (sem ``date.today()``),
