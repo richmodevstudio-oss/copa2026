@@ -91,7 +91,8 @@ def main() -> None:
     GERADO.mkdir(parents=True, exist_ok=True)
     FIGURAS.mkdir(parents=True, exist_ok=True)
     (GERADO / "dados.tex").write_text(
-        macros_tex(backtest, favorito, date.today().isoformat()), encoding="utf-8")
+        macros_tex(backtest, favorito, date.today().isoformat(), por_time),
+        encoding="utf-8")
     (GERADO / "backtest.tex").write_text(
         tabela_backtest_tex(backtest), encoding="utf-8")
     (GERADO / "titulo.tex").write_text(

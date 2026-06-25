@@ -19,12 +19,22 @@ def test_pct_virgula_decimal():
 
 
 def test_macros_define_grau_confianca():
-    tex = macros_tex(_result(), favorito="Brazil", data_iso="2026-06-25")
+    por_time = {
+        "Argentina": {"CAMPEAO": 0.20},
+        "France": {"CAMPEAO": 0.15},
+        "Brazil": {"CAMPEAO": 0.10},
+    }
+    tex = macros_tex(_result(), favorito="Argentina", data_iso="2026-06-25",
+                     por_time=por_time)
     assert "\\newcommand{\\grauConfianca}{100,0\\%}" in tex
     assert "\\newcommand{\\nJogosBacktest}{1}" in tex
     assert "\\newcommand{\\nDecididos}{1}" in tex
     assert "\\newcommand{\\nEmpatesExcluidos}{0}" in tex
-    assert "Brasil" in tex            # display_pt do favorito
+    assert "\\newcommand{\\probFavorito}{20,0\\%}" in tex
+    assert "\\newcommand{\\probBrasil}{10,0\\%}" in tex
+    # Brasil é o 3º colocado (atrás de Argentina e França)
+    assert "\\newcommand{\\posBrasil}{3\\textsuperscript{o}}" in tex
+    assert "Argentina" in tex         # display_pt do favorito
 
 
 def test_tabela_backtest_inclui_jogo_e_acerto():

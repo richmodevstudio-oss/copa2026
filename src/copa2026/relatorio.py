@@ -17,7 +17,23 @@ def pct(x: float) -> str:
     return f"{100 * x:.1f}".replace(".", ",") + r"\%"
 
 
-def macros_tex(resultado: BacktestResult, favorito: str, data_iso: str) -> str:
+def macros_tex(
+    resultado: BacktestResult,
+    favorito: str,
+    data_iso: str,
+    por_time: dict[str, dict[str, float]],
+) -> str:
+    """Macros LaTeX com os números da análise (confiança, favorito e Brasil).
+
+    ``por_time`` é o resultado de ``championship.probabilidades_titulo``; dele se
+    extraem a probabilidade do favorito e a probabilidade e a posição do Brasil.
+    """
+    ranking = sorted(
+        por_time, key=lambda t: por_time[t].get("CAMPEAO", 0.0), reverse=True
+    )
+    prob_favorito = por_time.get(favorito, {}).get("CAMPEAO", 0.0)
+    prob_brasil = por_time.get("Brazil", {}).get("CAMPEAO", 0.0)
+    pos_brasil = ranking.index("Brazil") + 1 if "Brazil" in ranking else 0
     linhas = [
         r"% gerado por scripts/gerar_analise.py — não editar à mão",
         r"\newcommand{\grauConfianca}{" + pct(resultado.confianca) + "}",
@@ -26,6 +42,9 @@ def macros_tex(resultado: BacktestResult, favorito: str, data_iso: str) -> str:
         r"\newcommand{\nAcertos}{" + str(resultado.acertos) + "}",
         r"\newcommand{\nEmpatesExcluidos}{" + str(resultado.empates) + "}",
         r"\newcommand{\favoritoTitulo}{" + display_pt(favorito) + "}",
+        r"\newcommand{\probFavorito}{" + pct(prob_favorito) + "}",
+        r"\newcommand{\probBrasil}{" + pct(prob_brasil) + "}",
+        r"\newcommand{\posBrasil}{" + str(pos_brasil) + r"\textsuperscript{o}}",
         r"\newcommand{\dataAnalise}{" + data_iso + "}",
     ]
     return "\n".join(linhas) + "\n"
