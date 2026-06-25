@@ -1,0 +1,8 @@
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+previsor-copa-2026.pdf

@@ -1,0 +1,106 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\input{gerado/dados}
+
+\title{Previsor de Resultados da Copa do Mundo de 2026:\\
+Metodologia, Verifica\c{c}\~ao Emp\'irica e Probabilidade de T\'itulo}
+\author{richmo.media}
+\date{\dataAnalise}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este artigo descreve o m\'etodo usado para prever resultados da Copa de 2026 a
+partir da forma recente das sele\c{c}\~oes, verifica-o empiricamente por uma
+an\'alise regressiva (\emph{backtest}) sobre os jogos j\'a disputados e projeta
+a probabilidade de cada sele\c{c}\~ao ser campe\~a por encadeamento das
+probabilidades de vit\'oria no mata-mata.
+\end{abstract}
+
+\section{Introdu\c{c}\~ao}
+O objetivo do previsor \'e gerar, para um bol\~ao, o palpite que maximiza os
+pontos esperados. A metodologia combina a forma recente (janela de 90 dias),
+um modelo de for\c{c}a ofensiva/defensiva e a distribui\c{c}\~ao de Poisson para
+os gols.
+
+\section{Metodologia}
+\subsection{Coleta e janela de 90 dias}
+Para cada partida a prever, consideram-se apenas os jogos das 48 sele\c{c}\~oes
+nos \'ultimos 90 dias, capturando a forma recente.
+
+\subsection{For\c{c}a ofensiva e defensiva (modelo circular)}
+Cada sele\c{c}\~ao $i$ tem for\c{c}a de ataque $O_i$ e fragilidade defensiva
+$D_i$. Sendo $\mu$ a m\'edia de gols por time por jogo, os gols esperados de $i$
+contra $j$ s\~ao $\mu\,O_i\,D_j$. Como ataque depende da defesa do advers\'ario
+e vice-versa, resolve-se o sistema por ponto fixo:
+\begin{align}
+O_i &\leftarrow \frac{\sum_{m} g^{\text{pro}}_{i,m}}
+                     {\sum_{m} \mu\,D_{\text{adv}(i,m)}}, &
+D_i &\leftarrow \frac{\sum_{m} g^{\text{contra}}_{i,m}}
+                     {\sum_{m} \mu\,O_{\text{adv}(i,m)}},
+\end{align}
+iterando at\'e a converg\^encia. Uma regulariza\c{c}\~ao (encolhimento para
+$O=D=1$) estabiliza estimativas de amostras pequenas.
+
+\subsection{Gols esperados}
+Com a for\c{c}a estimada, os gols esperados de mandante e visitante s\~ao
+\begin{equation}
+\lambda_{\text{casa}} = \mu\,O_{\text{casa}}\,D_{\text{fora}}, \qquad
+\lambda_{\text{fora}} = \mu\,O_{\text{fora}}\,D_{\text{casa}},
+\end{equation}
+e a probabilidade de cada placar $(x,y)$ segue dois processos de Poisson
+independentes: $P(x,y) = \mathrm{Pois}(x;\lambda_{\text{casa}})\,
+\mathrm{Pois}(y;\lambda_{\text{fora}})$.
+
+\subsection{Palpite \'otimo (resumo)}
+O palpite recomendado \'e o placar que maximiza o valor esperado da fun\c{c}\~ao
+de pontua\c{c}\~ao do bol\~ao sobre toda a matriz de placares. Esse passo
+importa apenas para o placar exato (aposta/bol\~ao) e n\~ao para as an\'alises
+de \emph{resultado} (vit\'oria/empate/derrota) deste artigo.
+
+\section{Verifica\c{c}\~ao emp\'irica (\emph{backtest} walk-forward)}
+Voltamos ao primeiro jogo da Copa e avan\c{c}amos jogo a jogo. Para cada partida
+j\'a disputada, a for\c{c}a \'e recalculada usando \textbf{apenas} os dados
+anteriores \`aquele jogo (sem vi\'es de futuro) e prev\^e-se o resultado de maior
+probabilidade entre vit\'oria da casa, empate e vit\'oria de fora — somando as
+regi\~oes da matriz de placares. Comparando com o resultado real, obtemos um
+\textbf{grau de confian\c{c}a emp\'irico} (taxa de acerto) de
+\textbf{\grauConfianca} em \nJogosBacktest{} jogos (\nAcertos{} acertos).
+
+{\footnotesize\input{gerado/backtest}}
+
+\section{Probabilidade de t\'itulo}
+Como a fase de grupos ainda n\~ao terminou, os jogos faltantes s\~ao preenchidos
+com o resultado previsto pelo m\'etodo, fixando os 32 confrontos das oitavas.
+A partir da\'i, encadeamos as probabilidades: a chance de um time vencer um jogo
+soma sobre os poss\'iveis advers\'arios, cada um ponderado pela sua probabilidade
+de chegar \`aquele jogo (empate decidido nos p\^enaltis como moeda justa).
+O produto ao longo das rodadas d\'a a probabilidade de t\'itulo. O favorito
+segundo o m\'etodo \'e \textbf{\favoritoTitulo}. Estas proje\c{c}\~oes devem ser
+lidas \`a luz do grau de confian\c{c}a emp\'irico (\grauConfianca).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{figuras/titulo.pdf}
+\caption{Probabilidade de t\'itulo das 12 sele\c{c}\~oes mais prov\'aveis.}
+\end{figure}
+
+{\footnotesize\input{gerado/titulo}}
+
+\section{Reprodutibilidade}
+Todas as tabelas e a figura s\~ao geradas por
+\texttt{scripts/gerar\_analise.py}, que consome os resultados reais da API e
+reexecuta os c\'alculos. Conforme novos jogos ocorrem (fim da fase de grupos,
+mata-mata), basta reexecutar o script para atualizar o artigo.
+
+\end{document}
