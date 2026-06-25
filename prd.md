@@ -323,10 +323,10 @@ O artigo inclui:
 - **Metodologia:** resumo das seções 4.1–4.4 deste PRD.
 - **Backtest walk-forward:** implementado em [`backtest.py`](src/copa2026/backtest.py),
   testa o previsor em histórico real sem vazamento de dados (look-ahead bias).
-  Fornece taxa de acerto e valor esperado observado.
+  Fornece o grau de confiança empírico (taxa de acerto dos resultados previstos).
 - **Probabilidade de título:** implementado em [`championship.py`](src/copa2026/championship.py),
-  simula o torneio completo e estima a probabilidade de cada seleção sagrar-se
-  campeã por programação dinâmica sobre o chaveamento oficial.
+  estima a probabilidade de cada seleção sagrar-se campeã por programação
+  dinâmica sobre o chaveamento, somando sobre a distribuição de adversários.
 - **Formatadores LaTeX:** implementados em [`relatorio.py`](src/copa2026/relatorio.py),
   geram tabelas e figuras prontas para inclusão no documento.
 - **Script regenerável:** [`scripts/gerar_analise.py`](scripts/gerar_analise.py)
