@@ -312,7 +312,31 @@ O placar vencedor $(p_A^*, p_B^*)$ é o palpite final.
 
 ---
 
-## 8. Trabalhos Futuros
+## 8. Verificação e Análise
+
+### 8.1. Artigo e análise empírica
+
+A metodologia, a verificação e a análise de desempenho estão documentadas em
+um artigo em LaTeX em [`artigo/previsor-copa-2026.tex`](artigo/previsor-copa-2026.tex).
+O artigo inclui:
+
+- **Metodologia:** resumo das seções 4.1–4.4 deste PRD.
+- **Backtest walk-forward:** implementado em [`backtest.py`](src/copa2026/backtest.py),
+  testa o previsor em histórico real sem vazamento de dados (look-ahead bias).
+  Fornece taxa de acerto e valor esperado observado.
+- **Probabilidade de título:** implementado em [`championship.py`](src/copa2026/championship.py),
+  simula o torneio completo e estima a probabilidade de cada seleção sagrar-se
+  campeã por programação dinâmica sobre o chaveamento oficial.
+- **Formatadores LaTeX:** implementados em [`relatorio.py`](src/copa2026/relatorio.py),
+  geram tabelas e figuras prontas para inclusão no documento.
+- **Script regenerável:** [`scripts/gerar_analise.py`](scripts/gerar_analise.py)
+  executa o backtest, calcula probabilidades de título e regenera a figura e as
+  tabelas do artigo em uma única chamada.
+
+Para regenerar: `python scripts/gerar_analise.py` e recompilar com
+`latexmk -pdf artigo/previsor-copa-2026.tex`.
+
+### 8.2. Trabalhos Futuros
 
 - **Correlação de placares:** substituir o Poisson independente por um modelo Dixon-Coles, que corrige a dependência em placares baixos (0-0, 1-1).
 - **Ponderação temporal:** dar mais peso a partidas mais recentes dentro da janela de 90 dias.

@@ -12,6 +12,13 @@ especificado em [`prd.md`](prd.md).
    de cada placar via Poisson.
 4. **Otimização** — escolhe o placar de maior **valor esperado de pontos**.
 
+## Artigo
+
+Um artigo em LaTeX com a metodologia, a verificação empírica (backtest) e a
+probabilidade de título está em [`artigo/`](artigo/). Regenerar os números:
+`python scripts/gerar_analise.py` e recompilar com
+`latexmk -pdf artigo/previsor-copa-2026.tex`.
+
 ## Instalação
 
 ```bash
