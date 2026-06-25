@@ -74,8 +74,19 @@ j\'a disputada, a for\c{c}a \'e recalculada usando \textbf{apenas} os dados
 anteriores \`aquele jogo (sem vi\'es de futuro) e prev\^e-se o resultado de maior
 probabilidade entre vit\'oria da casa, empate e vit\'oria de fora — somando as
 regi\~oes da matriz de placares. Comparando com o resultado real, obtemos um
-\textbf{grau de confian\c{c}a emp\'irico} (taxa de acerto) de
-\textbf{\grauConfianca} em \nJogosBacktest{} jogos (\nAcertos{} acertos).
+\textbf{grau de confian\c{c}a emp\'irico} (acerto do vencedor) de
+\textbf{\grauConfianca} nos \nDecididos{} jogos decididos (\nAcertos{} acertos).
+
+\paragraph{Por que excluir os empates.} Dos \nJogosBacktest{} jogos disputados,
+\nEmpatesExcluidos{} terminaram empatados e foram exclu\'idos do c\'alculo da
+confian\c{c}a. Ao tomar o resultado de \emph{maior probabilidade}, o m\'etodo
+quase nunca aponta o empate — que exige duas sele\c{c}\~oes de baixa produ\c{c}\~ao
+ofensiva \emph{e} for\c{c}as semelhantes — de modo que todo empate real viraria,
+mecanicamente, um erro. Como o grau de confian\c{c}a serve para caucionar a
+proje\c{c}\~ao de t\'itulo, que trata o mata-mata (onde n\~ao h\'a empates: a
+decis\~ao vai aos p\^enaltis), a m\'etrica relevante \'e o acerto do
+\emph{vencedor} nos jogos decididos. A tabela abaixo, ainda assim, lista
+\emph{todos} os jogos, marcando os empates como erro para total transpar\^encia.
 
 {\footnotesize\input{gerado/backtest}}
 

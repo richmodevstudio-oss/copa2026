@@ -82,6 +82,8 @@ class GameBacktest:
 class BacktestResult:
     jogos: list[GameBacktest]
     acertos: int
+    decididos: int
+    empates: int
     total: int
     confianca: float
 
@@ -101,7 +103,14 @@ def walk_forward_backtest(
     janela: int = 90,
     reg: float = 2.0,
 ) -> BacktestResult:
-    """Backtest sem lookahead: prevê cada jogo real com dados anteriores a ele."""
+    """Backtest sem lookahead: prevê cada jogo real com dados anteriores a ele.
+
+    O grau de confiança (``confianca``) é a taxa de acerto do vencedor nos jogos
+    **decididos**: os empates reais são excluídos do denominador, pois ao tomar o
+    resultado de maior probabilidade o método quase nunca aponta o empate, e a
+    projeção de título trata o mata-mata, onde não há empates. Todos os jogos
+    (inclusive os empates) seguem na lista ``jogos`` para a tabela jogo a jogo.
+    """
     reais = sorted(
         (f for f in jogos_copa
          if f.status == "FINISHED" and f.home and f.away
@@ -132,7 +141,10 @@ def walk_forward_backtest(
         jogos.append(GameBacktest(d, f.home, f.away, p_home, p_draw, p_away,
                                   previsto, real, previsto == real))
 
-    acertos = sum(1 for j in jogos if j.acertou)
+    decisivos = [j for j in jogos if j.real != "EMPATE"]
+    acertos = sum(1 for j in decisivos if j.acertou)
+    decididos = len(decisivos)
+    empates = len(jogos) - decididos
     total = len(jogos)
-    confianca = acertos / total if total else 0.0
-    return BacktestResult(jogos, acertos, total, confianca)
+    confianca = acertos / decididos if decididos else 0.0
+    return BacktestResult(jogos, acertos, decididos, empates, total, confianca)

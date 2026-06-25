@@ -98,8 +98,9 @@ def main() -> None:
         tabela_titulo_tex(por_time), encoding="utf-8")
     _figura_titulo(por_time, FIGURAS / "titulo.pdf")
 
-    print(f"Backtest: {backtest.acertos}/{backtest.total} "
-          f"(confiança {backtest.confianca:.1%})")
+    print(f"Backtest: {backtest.acertos}/{backtest.decididos} jogos decididos "
+          f"(confiança {backtest.confianca:.1%}); "
+          f"{backtest.empates} empate(s) excluído(s) de {backtest.total}")
     print(f"Favorito ao título: {display_pt(favorito)} "
           f"({por_time[favorito]['CAMPEAO']:.1%})")
     print(f"Artefatos escritos em {GERADO} e {FIGURAS}")

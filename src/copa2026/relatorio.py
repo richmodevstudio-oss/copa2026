@@ -22,7 +22,9 @@ def macros_tex(resultado: BacktestResult, favorito: str, data_iso: str) -> str:
         r"% gerado por scripts/gerar_analise.py — não editar à mão",
         r"\newcommand{\grauConfianca}{" + pct(resultado.confianca) + "}",
         r"\newcommand{\nJogosBacktest}{" + str(resultado.total) + "}",
+        r"\newcommand{\nDecididos}{" + str(resultado.decididos) + "}",
         r"\newcommand{\nAcertos}{" + str(resultado.acertos) + "}",
+        r"\newcommand{\nEmpatesExcluidos}{" + str(resultado.empates) + "}",
         r"\newcommand{\favoritoTitulo}{" + display_pt(favorito) + "}",
         r"\newcommand{\dataAnalise}{" + data_iso + "}",
     ]

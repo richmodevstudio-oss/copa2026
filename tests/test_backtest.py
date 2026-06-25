@@ -73,12 +73,28 @@ def test_walk_forward_hitrate_and_fields():
              _fx("Bolivia", "Brazil", 0, 3, "06-15")]   # fora vence
     res = walk_forward_backtest(jogos, base)
     assert res.total == 2
-    assert res.confianca == res.acertos / res.total
+    assert res.empates == 0
+    assert res.decididos == 2
+    assert res.confianca == res.acertos / res.decididos
     assert res.jogos[0].previsto == "CASA" and res.jogos[0].real == "CASA"
     assert res.jogos[0].acertou is True
     # soma das probabilidades ~ 1
     g = res.jogos[0]
     assert abs((g.p_home + g.p_draw + g.p_away) - 1.0) < 1e-9
+
+
+def test_walk_forward_exclui_empates_reais():
+    # Empates reais não entram no denominador da confiança (o método quase nunca
+    # prevê empate); ainda assim aparecem na tabela jogo-a-jogo.
+    base = _base_forte_fraca()
+    jogos = [_fx("Brazil", "Bolivia", 2, 0, "06-12"),   # decidido
+             _fx("Brazil", "France", 1, 1, "06-15")]    # EMPATE real -> excluído
+    res = walk_forward_backtest(jogos, base)
+    assert res.total == 2          # ambos contam na tabela
+    assert res.empates == 1
+    assert res.decididos == 1      # só o jogo decidido entra na confiança
+    assert res.confianca == res.acertos / res.decididos
+    assert any(j.real == "EMPATE" for j in res.jogos)
 
 
 def test_walk_forward_has_no_lookahead():

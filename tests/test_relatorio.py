@@ -9,7 +9,8 @@ from datetime import date
 def _result():
     g = GameBacktest(date(2026, 6, 12), "Brazil", "Bolivia",
                      0.7, 0.2, 0.1, "CASA", "CASA", True)
-    return BacktestResult([g], acertos=1, total=1, confianca=1.0)
+    return BacktestResult([g], acertos=1, decididos=1, empates=0, total=1,
+                          confianca=1.0)
 
 
 def test_pct_virgula_decimal():
@@ -21,6 +22,8 @@ def test_macros_define_grau_confianca():
     tex = macros_tex(_result(), favorito="Brazil", data_iso="2026-06-25")
     assert "\\newcommand{\\grauConfianca}{100,0\\%}" in tex
     assert "\\newcommand{\\nJogosBacktest}{1}" in tex
+    assert "\\newcommand{\\nDecididos}{1}" in tex
+    assert "\\newcommand{\\nEmpatesExcluidos}{0}" in tex
     assert "Brasil" in tex            # display_pt do favorito
 
 
