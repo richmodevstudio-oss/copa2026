@@ -2,8 +2,9 @@ from datetime import date
 
 import numpy as np
 
-from copa2026.backtest import outcome_probabilities, ratings_asof
+from copa2026.backtest import outcome_probabilities, ratings_asof, walk_forward_backtest, GameBacktest
 from copa2026.models import Match
+from copa2026.tournament import FixtureMatch
 
 
 def test_outcome_probabilities_buckets_and_sum():
@@ -47,10 +48,6 @@ def test_ratings_asof_empty_window_raises():
         assert False, "esperava ValueError"
     except ValueError:
         pass
-
-
-from copa2026.backtest import walk_forward_backtest, GameBacktest
-from copa2026.tournament import FixtureMatch
 
 
 def _fx(home, away, gh, ga, dia):

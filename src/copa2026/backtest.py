@@ -24,11 +24,16 @@ def outcome_probabilities(matrix: np.ndarray) -> tuple[float, float, float]:
     """(p_casa, p_empate, p_fora) somando a matriz de placares por região.
 
     ``P[x, y]`` com ``x`` = gols da casa (linha): casa vence abaixo da diagonal,
-    empate na diagonal, fora vence acima.
+    empate na diagonal, fora vence acima. As três probabilidades são
+    normalizadas para somar 1 (a matriz de Poisson truncada em ``max_goals``
+    soma um pouco menos que 1).
     """
     p_empate = float(np.trace(matrix))
     p_casa = float(np.tril(matrix, -1).sum())
     p_fora = float(np.triu(matrix, 1).sum())
+    total = p_casa + p_empate + p_fora
+    if total > 0:
+        p_casa, p_empate, p_fora = p_casa / total, p_empate / total, p_fora / total
     return p_casa, p_empate, p_fora
 
 
@@ -75,7 +80,7 @@ class GameBacktest:
 
 @dataclass(frozen=True)
 class BacktestResult:
-    jogos: list
+    jogos: list[GameBacktest]
     acertos: int
     total: int
     confianca: float
@@ -110,7 +115,7 @@ def walk_forward_backtest(
     ]
 
     jogos: list[GameBacktest] = []
-    for i, f in enumerate(reais):
+    for f in reais:
         d = date.fromisoformat(f.utc_date[:10])
         base = partidas_base + [m for m in copa_matches if m.played_on < d]
         try:
@@ -122,11 +127,6 @@ def walk_forward_backtest(
         lambda_home, lambda_away = expected_goals(hr, ar, mu)
         matrix = score_matrix(lambda_home, lambda_away)
         p_home, p_draw, p_away = outcome_probabilities(matrix)
-        # Normalize probabilities to sum to 1.0
-        total_prob = p_home + p_draw + p_away
-        p_home /= total_prob
-        p_draw /= total_prob
-        p_away /= total_prob
         previsto = _LABELS[int(np.argmax((p_home, p_draw, p_away)))]
         real = _resultado(f.home_goals, f.away_goals)
         jogos.append(GameBacktest(d, f.home, f.away, p_home, p_draw, p_away,
