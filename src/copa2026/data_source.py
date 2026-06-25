@@ -25,6 +25,16 @@ from .teams import TEAM_NAME_ALIASES, WORLD_CUP_2026_TEAMS
 FOOTBALL_DATA_BASE_URL = "https://api.football-data.org/v4"
 WORLD_CUP_COMPETITION_CODE = "WC"
 
+# A análise é específica da Copa de 2026; como o repositório pode permanecer
+# publicado indefinidamente, a coleta de dados nunca passa da data da final
+# (evita puxar amistosos pós-Copa quando o app/análise rodar no futuro).
+WORLD_CUP_END = date(2026, 7, 19)
+
+
+def collection_date_to(today: date | None = None) -> date:
+    """Data-limite da coleta: nunca posterior à final da Copa (``WORLD_CUP_END``)."""
+    return min(today or date.today(), WORLD_CUP_END)
+
 
 def get_json_with_retries(
     session,
@@ -183,7 +193,7 @@ class FootballDataSource:
             ) from None
 
     def recent_matches(self, team: str, days: int = 90) -> list[Match]:
-        date_to = date.today()
+        date_to = collection_date_to()
         date_from = date_to - timedelta(days=days)
         payload = self._get(
             f"/teams/{self.team_id(team)}/matches",

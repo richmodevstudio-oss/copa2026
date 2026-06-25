@@ -2,14 +2,46 @@
 
 import pytest
 
+from datetime import date
+
 from copa2026.data_source import (
     CombinedDataSource,
     FootballDataSource,
     HardcodedDataSource,
     SyntheticDataSource,
+    WORLD_CUP_END,
     canonical_name,
+    collection_date_to,
     parse_football_data_matches,
 )
+
+
+def test_collection_date_to_caps_no_final():
+    assert WORLD_CUP_END == date(2026, 7, 19)
+    # antes da final: a própria data
+    assert collection_date_to(date(2026, 6, 25)) == date(2026, 6, 25)
+    # depois da final: limita à data da final (repo pode ficar publicado)
+    assert collection_date_to(date(2027, 1, 10)) == WORLD_CUP_END
+
+
+def test_recent_matches_limita_coleta_a_final(monkeypatch):
+    import copa2026.data_source as ds
+
+    class _FakeDate(date):
+        @classmethod
+        def today(cls):
+            return date(2027, 3, 1)  # bem depois da Copa
+
+    monkeypatch.setattr(ds, "date", _FakeDate)
+    routes = {
+        "/competitions/WC/teams": {"teams": [{"id": 764, "name": "Brazil"}]},
+        "/teams/764/matches": {"matches": []},
+    }
+    session = _FakeSession(routes)
+    src = FootballDataSource(api_key="fake", session=session)
+    src.recent_matches("Brazil")
+    call = next(p for url, p in session.calls if "/teams/764/matches" in url)
+    assert call["dateTo"] == "2026-07-19"  # limitado à final, não 2027
 
 
 def test_hardcoded_retorna_jogos_do_time_mais_recentes_primeiro():

@@ -23,7 +23,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 
 from copa2026.backtest import ratings_asof, walk_forward_backtest  # noqa: E402
 from copa2026.championship import probabilidades_titulo  # noqa: E402
-from copa2026.data_source import FootballDataSource  # noqa: E402
+from copa2026.data_source import FootballDataSource, collection_date_to  # noqa: E402
 from copa2026.models import Match  # noqa: E402
 from copa2026.pre_wc_data import PRE_WC_MATCHES  # noqa: E402
 from copa2026.relatorio import (  # noqa: E402
@@ -76,7 +76,8 @@ def main() -> None:
         and f.home_goals is not None and f.away_goals is not None
     ]
 
-    ratings, mu = ratings_asof(date.today(), base + copa_reais)
+    # Referência da força limitada à final da Copa (coleta não passa dela).
+    ratings, mu = ratings_asof(collection_date_to(), base + copa_reais)
 
     backtest = walk_forward_backtest(fixtures, base)
 
