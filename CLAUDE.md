@@ -4,9 +4,11 @@ Orientações para o Claude Code trabalhar neste repositório.
 
 ## O que é
 
-Previsor de placares para a Copa 2026: gera o palpite que **maximiza os pontos
-esperados** do bolão. O raciocínio completo está em [`prd.md`](prd.md); o resumo
-de uso, no [`README.md`](README.md).
+Análise estatística da Copa 2026: modela a força das seleções (forma recente +
+Poisson) e, sobre o mesmo modelo, entrega (a) um **app Streamlit** que sugere o
+placar de maior valor esperado para um bolão e (b) um **artigo** (`artigo/`) com
+a verificação empírica do modelo e a probabilidade de título. O raciocínio
+completo está em [`prd.md`](prd.md); o resumo de uso, no [`README.md`](README.md).
 
 Pipeline em 4 etapas: **coleta** do histórico recente → **força** (ratings
 ofensivo/defensivo por ponto-fixo) → **previsão** (gols esperados λ + matriz
@@ -31,9 +33,13 @@ Lógica em `src/copa2026/` (pacote importável; `pythonpath = src` no `pytest.in
 - `bracket_data.py` — mapa fixo do chaveamento (jogos 73–104, escrito à mão).
 - `third_place_data.py` — tabela oficial dos 8 melhores terceiros (**gerado**, não editar à mão).
 - `tournament.py` — simulação do torneio completo (real + previsto) via `simulate_tournament`.
+- `backtest.py` — verificação walk-forward (grau de confiança = acerto do vencedor).
+- `championship.py` — probabilidade de título por DP no chaveamento.
+- `relatorio.py` — formatadores LaTeX das análises do artigo.
 
 `app.py` é a UI Streamlit com duas abas: **Previsor** (palpite por partida) e
-**Tabela da Copa** (chaveamento completo até a final).
+**Tabela da Copa** (chaveamento completo até a final). O artigo em `artigo/` é
+gerado por `scripts/gerar_analise.py` (tabelas/figura) + `latexmk`.
 
 ## Dados
 
@@ -60,10 +66,3 @@ streamlit run app.py              # interface local
 - Strings da UI e docs em **português**.
 - Toda fórmula/etapa referencia a seção correspondente do `prd.md` — mantenha
   esse mapeamento ao alterar a lógica.
-
-## Deploy
-
-Produção em **https://palpites.richmo.media** (VPS, Streamlit sob systemd +
-nginx + TLS Let's Encrypt). Provisionamento em `scripts/deploy_server.sh`
-(rodar no servidor como root). Para atualizar o app já no ar: enviar os arquivos
-alterados para `/opt/copa2026/` e `systemctl restart copa2026`.

@@ -1,7 +1,17 @@
-# Previsor de Resultados — Copa 2026
+# Copa do Mundo 2026 — Análise Estatística
 
-Gera o palpite de placar que **maximiza os pontos esperados** do bolão, conforme
-especificado em [`prd.md`](prd.md).
+Modela a **força ofensiva e defensiva** das seleções a partir da forma recente
+(janela de 90 dias) e, com a distribuição de **Poisson**, estima probabilidades
+de resultado e de título para a Copa do Mundo de 2026. A metodologia está
+detalhada no [`prd.md`](prd.md) e no artigo em [`artigo/`](artigo/).
+
+O projeto tem duas faces sobre o mesmo modelo:
+
+- **Artigo** ([`artigo/`](artigo/)) — análise estatística: verificação empírica
+  do modelo (*backtest*) e probabilidade de cada seleção ser campeã.
+- **App Streamlit** ([`app.py`](app.py)) — aplicação prática que sugere, para um
+  bolão, o placar de **maior valor esperado de pontos**, além de uma tabela da
+  Copa com o chaveamento real + previsto.
 
 ## Como funciona (resumo)
 
@@ -75,13 +85,6 @@ print(pred.palpite, pred.expected_points)
 python -m pytest
 ```
 
-## Deploy
-
-A aplicação roda em produção em **https://palpites.richmo.media** (VPS, Streamlit
-sob systemd + nginx com TLS Let's Encrypt). O provisionamento do servidor está em
-[`scripts/deploy_server.sh`](scripts/deploy_server.sh). Para atualizar o app já
-provisionado, basta enviar os arquivos alterados e reiniciar o serviço.
-
 ## Estrutura
 
 ```
@@ -95,8 +98,19 @@ src/copa2026/
   data_source.py   # fontes de dados: hardcoded / combinada / football-data / sintética
   pre_wc_data.py   # histórico pré-Copa embutido (gerado)
   pipeline.py      # orquestra as 4 etapas (PRD §4.5)
-app.py             # interface Streamlit (PRD §5)
+  ratings.py       # força global (1×) + predict_scoreline + knockout_winner
+  standings.py     # classificação de grupo (critérios FIFA)
+  bracket_data.py  # mapa fixo do chaveamento (jogos 73–104)
+  third_place_data.py  # tabela oficial dos 8 melhores terceiros (gerado)
+  tournament.py    # simulação do torneio (real + previsto)
+  backtest.py      # verificação walk-forward (grau de confiança)
+  championship.py  # probabilidade de título por DP no chaveamento
+  relatorio.py     # formatadores LaTeX da análise
+app.py             # interface Streamlit (previsor + tabela da Copa)
+artigo/            # artigo LaTeX (metodologia, backtest, prob. de título)
 scripts/
-  generate_pre_wc_data.py  # regenera pre_wc_data.py a partir da ESPN
+  generate_pre_wc_data.py       # regenera pre_wc_data.py
+  generate_third_place_data.py  # regenera third_place_data.py
+  gerar_analise.py              # regenera as tabelas/figura do artigo
 tests/             # suíte de testes (TDD)
 ```
