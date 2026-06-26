@@ -1,0 +1,173 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{margin=2.5cm}
+
+\input{gerado/dados}
+
+\title{Força das Seleções e Probabilidades de Título\\na Copa do Mundo de 2026}
+\author{Ricardo Lopes Moura}
+\date{\dataAnalise}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este trabalho é um exercício de análise de dados sobre a Copa do Mundo de 2026.
+A partir da forma recente das seleções, estima-se a força ofensiva e defensiva de
+cada equipe e, com a distribuição de Poisson, a probabilidade de cada resultado.
+O método é verificado empiricamente por uma análise regressiva (\emph{backtest})
+sobre os jogos já disputados, medindo o acerto do vencedor; e, a partir da
+classificação da fase de grupos, estima-se a probabilidade de cada seleção
+sagrar-se campeã. Não se trata de uma previsão, mas de uma análise do cenário
+atual: a verificação considera apenas jogos já disputados, e as probabilidades de
+título completam a fase de grupos ainda em aberto com o desfecho mais provável do
+modelo, apenas para fixar o chaveamento.
+\end{abstract}
+
+\section{Introdução}
+Este artigo modela a força das seleções da Copa do Mundo de 2026 a partir de seu
+desempenho recente e, com isso, estima probabilidades de resultado e de título.
+A metodologia combina a forma recente (janela de 90 dias), um modelo de força
+ofensiva/defensiva e a distribuição de Poisson para os gols, seguindo a tradição
+iniciada por Maher~\cite{maher1982}. O objetivo é descritivo e analítico, não
+preditivo (Seção~\ref{sec:escopo}).
+
+\section{Metodologia}
+\subsection{Coleta e janela de 90 dias}
+Para cada partida analisada, consideram-se apenas os jogos das 48 seleções nos
+últimos 90 dias, capturando a forma recente. Os resultados são públicos e podem
+ser consultados em qualquer base de partidas internacionais.
+
+\subsection{Força ofensiva e defensiva (modelo circular)}\label{sec:forca}
+Cada seleção $i$ tem força de ataque $O_i$ e fragilidade defensiva $D_i$. Sendo
+$\mu$ a média de gols por time por jogo, os gols esperados de $i$ contra $j$ são
+$\mu\,O_i\,D_j$~\cite{maher1982}. Como o ataque depende da defesa do adversário e
+vice-versa, resolve-se o sistema por ponto fixo:
+\begin{align}
+O_i &\leftarrow \frac{\sum_{m} g^{\text{pró}}_{i,m}}
+                     {\sum_{m} \mu\,D_{\text{adv}(i,m)}}, &
+D_i &\leftarrow \frac{\sum_{m} g^{\text{contra}}_{i,m}}
+                     {\sum_{m} \mu\,O_{\text{adv}(i,m)}},
+\end{align}
+iterando até a convergência. Uma regularização (encolhimento para $O=D=1$)
+estabiliza estimativas de amostras pequenas.
+
+\subsection{Gols esperados}
+Com a força estimada, os gols esperados de mandante e visitante são
+\begin{equation}
+\lambda_{\text{casa}} = \mu\,O_{\text{casa}}\,D_{\text{fora}}, \qquad
+\lambda_{\text{fora}} = \mu\,O_{\text{fora}}\,D_{\text{casa}},
+\end{equation}
+e a probabilidade de cada placar $(x,y)$ segue dois processos de Poisson
+independentes: $P(x,y) = \mathrm{Pois}(x;\lambda_{\text{casa}})\,
+\mathrm{Pois}(y;\lambda_{\text{fora}})$. A hipótese de independência é uma
+simplificação; modelos que corrigem a correlação em placares baixos ou empregam
+um Poisson bivariado~\cite{dixoncoles1997,karlis2003} são extensões naturais.
+
+\subsection{Probabilidades de resultado}
+Somando a matriz de placares em três regiões obtêm-se as probabilidades de
+vitória da casa ($\sum_{x>y} P(x,y)$), empate ($\sum_{x=y} P(x,y)$) e vitória de
+fora ($\sum_{x<y} P(x,y)$). São essas probabilidades de \emph{resultado} — e não
+o placar exato — que sustentam a verificação empírica e a estimativa de título a
+seguir.
+
+\section{Verificação empírica (\emph{backtest} walk-forward)}
+Voltamos ao primeiro jogo da Copa e avançamos jogo a jogo. Para cada partida já
+disputada, a força é recalculada usando \textbf{apenas} os dados anteriores
+àquele jogo (sem viés de futuro) e prevê-se o resultado de maior probabilidade
+entre vitória da casa, empate e vitória de fora. Comparando com o resultado real,
+obtemos um \textbf{grau de confiança empírico} (acerto do vencedor) de
+\textbf{\grauConfianca} nos \nDecididos{} jogos decididos (\nAcertos{} acertos).
+
+\paragraph{Por que excluir os empates.} Dos \nJogosBacktest{} jogos disputados,
+\nEmpatesExcluidos{} terminaram empatados e foram excluídos do cálculo da
+confiança. Ao tomar o resultado de \emph{maior probabilidade}, o método quase
+nunca aponta o empate (nesta amostra, nenhuma vez) — que exige duas seleções de
+baixa produção ofensiva
+\emph{e} forças semelhantes — de modo que todo empate real viraria,
+mecanicamente, um erro. Como o grau de confiança serve para caucionar a
+estimativa de título, que trata o mata-mata (onde não há empates: a decisão vai
+aos pênaltis), a métrica relevante é o acerto do \emph{vencedor} nos jogos
+decididos. A tabela abaixo, ainda assim, lista \emph{todos} os jogos, marcando os
+empates como erro para total transparência.
+
+{\footnotesize\input{gerado/backtest}}
+
+\section{Probabilidade de título}
+Como a fase de grupos ainda não terminou, os jogos faltantes são preenchidos com
+o desfecho mais provável segundo o modelo, fixando a classificação e, com ela, os
+16 confrontos dos 16 avos de final (32 seleções). A partir daí, encadeiam-se as
+probabilidades: a chance
+de uma seleção vencer um jogo soma sobre os possíveis adversários, cada um
+ponderado pela probabilidade de chegar àquele confronto (empate decidido nos
+pênaltis como moeda justa). O produto ao longo das rodadas dá a probabilidade de
+título. A seleção com maior probabilidade segundo o método é
+\textbf{\favoritoTitulo} (\probFavorito). A seleção brasileira aparece em
+\posBrasil{} lugar, com \probBrasil{} de probabilidade de título. Estes números
+descrevem o cenário \emph{atual} e devem ser lidos à luz do grau de confiança
+empírico (\grauConfianca).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{figuras/titulo.pdf}
+\caption{Probabilidade de título das 12 seleções mais prováveis.}
+\end{figure}
+
+{\footnotesize\input{gerado/titulo}}
+
+\section{Reprodutibilidade}
+A análise é reproduzível apenas a partir deste texto e de dados públicos. Os
+passos são: (i) coletar, para cada seleção, os jogos dos últimos 90 dias
+anteriores à data de referência; (ii) estimar $O_i$ e $D_i$ pelo ponto fixo da
+Seção~\ref{sec:forca}; (iii) para cada partida, calcular $\lambda$ e a matriz de
+Poisson e, dela, as probabilidades de resultado; (iv) para a verificação, repetir
+o processo avançando jogo a jogo, sempre com dados anteriores ao jogo avaliado;
+(v) para o título, completar a fase de grupos com o desfecho mais provável e
+encadear as probabilidades de vitória pelo chaveamento oficial. Não é necessário
+reproduzir aqui os resultados anteriores à Copa: basta consultar as partidas
+públicas. A implementação de referência usa Python~\cite{python} com
+NumPy~\cite{numpy}, SciPy~\cite{scipy} e Matplotlib~\cite{matplotlib}, e foi
+desenvolvida com o auxílio do Claude Code~\cite{claudecode}.
+
+\section{Escopo e limitações}\label{sec:escopo}
+Este é um exercício de análise de dados, não uma previsão. A verificação
+considera exclusivamente os jogos realizados até a data de publicação
+(\dataAnalise); as probabilidades de título, além desses, completam a fase de
+grupos ainda em aberto com o desfecho mais provável do modelo, apenas para fixar
+o chaveamento. A cada nova rodada os números mudam. O grau de confiança mede o
+acerto do vencedor em jogos passados e não garante desempenho futuro, e as
+probabilidades de título descrevem o cenário corrente sob as hipóteses do modelo
+(forma recente, Poisson independente), não uma aposta sobre o desfecho real.
+
+\begin{thebibliography}{9}
+\bibitem{maher1982} Maher, M.~J. (1982). Modelling association football scores.
+\emph{Statistica Neerlandica}, 36(3), 109--118.
+\bibitem{dixoncoles1997} Dixon, M.~J. \& Coles, S.~G. (1997). Modelling
+association football scores and inefficiencies in the football betting market.
+\emph{Journal of the Royal Statistical Society: Series C (Applied Statistics)},
+46(2), 265--280.
+\bibitem{karlis2003} Karlis, D. \& Ntzoufras, I. (2003). Analysis of sports data
+by using bivariate Poisson models. \emph{Journal of the Royal Statistical
+Society: Series D (The Statistician)}, 52(3), 381--393.
+\bibitem{python} Van Rossum, G. \& Drake, F.~L. (2009). \emph{Python 3 Reference
+Manual}. Scotts Valley, CA: CreateSpace.
+\bibitem{numpy} Harris, C.~R. \emph{et al.} (2020). Array programming with NumPy.
+\emph{Nature}, 585, 357--362.
+\bibitem{scipy} Virtanen, P. \emph{et al.} (2020). SciPy 1.0: fundamental
+algorithms for scientific computing in Python. \emph{Nature Methods}, 17,
+261--272.
+\bibitem{matplotlib} Hunter, J.~D. (2007). Matplotlib: a 2D graphics environment.
+\emph{Computing in Science \& Engineering}, 9(3), 90--95.
+\bibitem{claudecode} Anthropic (2025). \emph{Claude Code}: ferramenta de
+desenvolvimento assistido por IA. \url{https://www.anthropic.com}
+\end{thebibliography}
+
+\end{document}

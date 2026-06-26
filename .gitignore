@@ -11,3 +11,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+
+# Workflow interno (specs/plans do superpowers) — fora do repo público
+docs/superpowers/
+scripts/deploy_server.sh
