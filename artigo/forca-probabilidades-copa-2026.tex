@@ -27,9 +27,9 @@ O método é verificado empiricamente por uma análise regressiva (\emph{backtes
 sobre os jogos já disputados, medindo o acerto do vencedor; e, a partir da
 classificação da fase de grupos, estima-se a probabilidade de cada seleção
 sagrar-se campeã. Não se trata de uma previsão, mas de uma análise do cenário
-atual: a verificação considera apenas jogos já disputados, e as probabilidades de
-título completam a fase de grupos ainda em aberto com o desfecho mais provável do
-modelo, apenas para fixar o chaveamento.
+atual: a verificação considera apenas jogos já disputados --- toda a fase de
+grupos, agora encerrada --- e, com a classificação já definida, as probabilidades
+de título encadeiam-se pelo chaveamento do mata-mata, ainda por disputar.
 \end{abstract}
 
 \section{Introdução}
@@ -102,9 +102,9 @@ empates como erro para total transparência.
 {\footnotesize\input{gerado/backtest}}
 
 \section{Probabilidade de título}
-Como a fase de grupos ainda não terminou, os jogos faltantes são preenchidos com
-o desfecho mais provável segundo o modelo, fixando a classificação e, com ela, os
-16 confrontos dos 16 avos de final (32 seleções). A partir daí, encadeiam-se as
+Encerrada a fase de grupos, a classificação está definida e, com ela, os 16
+confrontos dos 16 avos de final (32 seleções) ficam fixados pelos resultados
+reais. A partir daí, encadeiam-se as
 probabilidades: a chance
 de uma seleção vencer um jogo soma sobre os possíveis adversários, cada um
 ponderado pela probabilidade de chegar àquele confronto (empate decidido nos
@@ -140,9 +140,9 @@ desenvolvida com o auxílio do Claude Code~\cite{claudecode}.
 \section{Escopo e limitações}\label{sec:escopo}
 Este é um exercício de análise de dados, não uma previsão. A verificação
 considera exclusivamente os jogos realizados até a data de publicação
-(\dataAnalise); as probabilidades de título, além desses, completam a fase de
-grupos ainda em aberto com o desfecho mais provável do modelo, apenas para fixar
-o chaveamento. A cada nova rodada os números mudam. O grau de confiança mede o
+(\dataAnalise) --- encerrada a fase de grupos, são os 72 jogos do primeiro turno;
+as probabilidades de título partem da classificação já definida e encadeiam o
+mata-mata, ainda por disputar. A cada nova rodada os números mudam. O grau de confiança mede o
 acerto do vencedor em jogos passados e não garante desempenho futuro, e as
 probabilidades de título descrevem o cenário corrente sob as hipóteses do modelo
 (forma recente, Poisson independente), não uma aposta sobre o desfecho real.
